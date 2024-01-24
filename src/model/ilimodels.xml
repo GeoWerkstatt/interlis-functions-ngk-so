@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?><TRANSFER xmlns="http://www.interlis.ch/INTERLIS2.3">
+<HEADERSECTION SENDER="mkilimodelsxml-5.4.1-b49d62c05c4a212d9a0aa81797efd5185ed288af" VERSION="2.3"><MODELS><MODEL NAME="IliRepository20" VERSION="2020-04-17" URI="http://models.interlis.ch/core"></MODEL></MODELS></HEADERSECTION>
+<DATASECTION>
+<IliRepository20.RepositoryIndex BID="b1">
+<IliRepository20.RepositoryIndex.ModelMetadata TID="10"><Name>NGK_SO_FunctionsExt</Name><SchemaLanguage>ili2_4</SchemaLanguage><File>NGK_SO_FunctionsExt.ili</File><Version>2024-01-23</Version><publishingDate>2024-01-23</publishingDate><Issuer>mailto:info@geowerkstatt.ch</Issuer><browseOnly>false</browseOnly><md5>fde4446812ef76bd0d2bde502b79ee23</md5></IliRepository20.RepositoryIndex.ModelMetadata>
+</IliRepository20.RepositoryIndex>
+</DATASECTION>
+</TRANSFER>
