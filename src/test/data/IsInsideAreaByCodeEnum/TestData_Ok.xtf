@@ -10,7 +10,7 @@
     </ili:headersection>
     <ili:datasection>
         <TestSuite:FunctionTestTopic ili:bid="TestSuite.FunctionTestTopic">
-            <TestSuite:BaseClass ili:tid="a"><!-- Code ordered 2, 1, 3 to test sorting -->
+            <TestSuite:BaseClass ili:tid="a"><!-- Code ordered 2, 1, 4 to test sorting and gap in codes -->
                 <TestSuite:code>code_2</TestSuite:code>
                 <TestSuite:surface>
                     <geom:surface>
@@ -149,7 +149,7 @@
                 </TestSuite:surface>
             </TestSuite:BaseClass>
             <TestSuite:BaseClass ili:tid="c">
-                <TestSuite:code>code_3</TestSuite:code>
+                <TestSuite:code>code_4</TestSuite:code>
                 <TestSuite:surface>
                     <geom:surface>
                         <geom:exterior>
