@@ -23,7 +23,7 @@ MODEL TestSuite
       code : Code;
       surface : SURFACE WITH (STRAIGHTS) VERTEX CHKoord WITHOUT OVERLAPS > 0.001;
 
-      SET CONSTRAINT insideAreaConstraint: NGK_SO_FunctionsExt.IsInsideAreaByCodeEnum(ALL, "surface", "code");
+      SET CONSTRAINT insideAreaConstraint: NGK_SO_FunctionsExt.IsInsideAreaByCode(ALL, "surface", "code");
     END BaseClass;
 
   END FunctionTestTopic;

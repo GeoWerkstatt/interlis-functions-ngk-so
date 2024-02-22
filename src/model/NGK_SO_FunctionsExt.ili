@@ -5,5 +5,5 @@ MODEL NGK_SO_FunctionsExt
     !!@ fn.param = "Objects: Zu prüfende Objektmenge. GeometryAttr: Pfad zur Geometrie. CodeAttr: Pfad zum Enum";
     !!@ fn.return = "Boolean";
     !!@ fn.since = "2024-01-23";
-    FUNCTION IsInsideAreaByCodeEnum (Objects: OBJECTS OF ANYCLASS; GeometryAttr: TEXT; CodeAttr: TEXT): BOOLEAN;
+    FUNCTION IsInsideAreaByCode (Objects: OBJECTS OF ANYCLASS; GeometryAttr: TEXT; CodeAttr: TEXT): BOOLEAN;
 END NGK_SO_FunctionsExt.

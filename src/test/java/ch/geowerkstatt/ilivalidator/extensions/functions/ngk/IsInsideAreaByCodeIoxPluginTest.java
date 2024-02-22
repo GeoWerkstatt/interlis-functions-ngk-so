@@ -6,16 +6,16 @@ import com.vividsolutions.jts.util.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public final class IsInsideAreaByCodeEnumIoxPluginTest {
-    private static final String ILI_FILE = "IsInsideAreaByCodeEnum/SetConstraints.ili";
-    private static final String TEST_DATA_OK = "IsInsideAreaByCodeEnum/TestData_Ok.xtf";
-    private static final String TEST_DATA_FAIL = "IsInsideAreaByCodeEnum/TestData_Fail.xtf";
+public final class IsInsideAreaByCodeIoxPluginTest {
+    private static final String ILI_FILE = "IsInsideAreaByCode/SetConstraints.ili";
+    private static final String TEST_DATA_OK = "IsInsideAreaByCode/TestData_Ok.xtf";
+    private static final String TEST_DATA_FAIL = "IsInsideAreaByCode/TestData_Fail.xtf";
     private ValidationTestHelper vh = null;
 
     @BeforeEach
     public void setUp() {
         vh = new ValidationTestHelper();
-        vh.addFunction(new IsInsideAreaByCodeEnumIoxPlugin());
+        vh.addFunction(new IsInsideAreaByCodeIoxPlugin());
     }
 
     @Test

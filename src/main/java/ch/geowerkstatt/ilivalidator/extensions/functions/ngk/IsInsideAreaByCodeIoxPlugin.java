@@ -20,12 +20,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public final class IsInsideAreaByCodeEnumIoxPlugin extends BaseInterlisFunction {
+public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
     private static final Map<InsideAreaKey, Value> OBJECTS_CACHE = new HashMap<>();
 
     @Override
     public String getQualifiedIliName() {
-        return "NGK_SO_FunctionsExt.IsInsideAreaByCodeEnum";
+        return "NGK_SO_FunctionsExt.IsInsideAreaByCode";
     }
 
     @Override
