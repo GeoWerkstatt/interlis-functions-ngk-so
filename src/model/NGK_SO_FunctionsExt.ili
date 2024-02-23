@@ -5,8 +5,8 @@ MODEL NGK_SO_FunctionsExt
     !!@ fn.param = "Objects: Zu prüfende Objektmenge.";
     !!@ fn.param = "GeometryAttr: Pfad zur Geometrie.";
     !!@ fn.param = "CodeAttr: Pfad zum Enum oder numerischen Attribut";
-    !!@ fn.sample = "SET CONSTRAINT NGK_SO_FunctionsExt.IsInsideAreaByCode(THIS, "Geometrie" ,"Code");";
     !!@ fn.return = "Boolean";
     !!@ fn.since = "2024-01-23";
+    !!sample = "SET CONSTRAINT NGK_SO_FunctionsExt.IsInsideAreaByCode(THIS, "Geometrie" ,"Code");";
     FUNCTION IsInsideAreaByCodeEnum (Objects: OBJECTS OF ANYCLASS; GeometryAttr: TEXT; CodeAttr: TEXT): BOOLEAN;
 END NGK_SO_FunctionsExt.
