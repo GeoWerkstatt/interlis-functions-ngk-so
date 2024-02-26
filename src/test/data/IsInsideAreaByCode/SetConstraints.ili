@@ -7,12 +7,13 @@ MODEL TestSuite
   TOPIC FunctionTestTopic =
 
     DOMAIN
-      Code = (
+      CodeEnum = (
         code_1,
         code_2,
         code_3,
         code_4
       ) ORDERED;
+      CodeNumeric = 0 .. 999;
 
       !!@CRS=EPSG:2056
       CHKoord = COORD 2460000.000 .. 2870000.000 [INTERLIS.m],
@@ -20,10 +21,12 @@ MODEL TestSuite
                       ROTATION 2 -> 1;
 
     CLASS BaseClass =
-      code : Code;
+      codeEnum : CodeEnum;
+      codeNumeric : CodeNumeric;
       surface : SURFACE WITH (STRAIGHTS) VERTEX CHKoord WITHOUT OVERLAPS > 0.001;
 
-      SET CONSTRAINT insideAreaConstraint: NGK_SO_FunctionsExt.IsInsideAreaByCodeEnum(ALL, "surface", "code");
+      SET CONSTRAINT insideAreaConstraintEnum: NGK_SO_FunctionsExt.IsInsideAreaByCode(ALL, "surface", "codeEnum");
+      SET CONSTRAINT insideAreaConstraintNumeric: NGK_SO_FunctionsExt.IsInsideAreaByCode(ALL, "surface", "codeNumeric");
     END BaseClass;
 
   END FunctionTestTopic;

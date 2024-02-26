@@ -11,7 +11,8 @@
     <ili:datasection>
         <TestSuite:FunctionTestTopic ili:bid="TestSuite.FunctionTestTopic">
             <TestSuite:BaseClass ili:tid="1">
-                <TestSuite:code>code_1</TestSuite:code>
+                <TestSuite:codeEnum>code_1</TestSuite:codeEnum>
+                <TestSuite:codeNumeric>11</TestSuite:codeNumeric>
                 <TestSuite:surface>
                     <geom:surface>
                         <geom:exterior>
@@ -134,7 +135,8 @@
                 </TestSuite:surface>
             </TestSuite:BaseClass>
             <TestSuite:BaseClass ili:tid="2">
-                <TestSuite:code>code_2</TestSuite:code>
+                <TestSuite:codeEnum>code_2</TestSuite:codeEnum>
+                <TestSuite:codeNumeric>22</TestSuite:codeNumeric>
                 <TestSuite:surface>
                     <geom:surface>
                         <geom:exterior>
@@ -289,7 +291,8 @@
                 </TestSuite:surface>
             </TestSuite:BaseClass>
             <TestSuite:BaseClass ili:tid="3">
-                <TestSuite:code>code_3</TestSuite:code>
+                <TestSuite:codeEnum>code_3</TestSuite:codeEnum>
+                <TestSuite:codeNumeric>33</TestSuite:codeNumeric>
                 <TestSuite:surface>
                     <geom:surface>
                         <geom:exterior>
@@ -420,7 +423,8 @@
                 </TestSuite:surface>
             </TestSuite:BaseClass>
             <TestSuite:BaseClass ili:tid="4">
-                <TestSuite:code>code_4</TestSuite:code>
+                <TestSuite:codeEnum>code_4</TestSuite:codeEnum>
+                <TestSuite:codeNumeric>44</TestSuite:codeNumeric>
                 <TestSuite:surface>
                     <geom:surface>
                         <geom:exterior>
