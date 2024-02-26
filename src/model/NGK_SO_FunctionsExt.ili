@@ -1,8 +1,8 @@
 INTERLIS 2.4;
 MODEL NGK_SO_FunctionsExt
   AT "mailto:info@geowerkstatt.ch" VERSION "2024-01-23" =
-    !!@ fn.description = "Prüft bei der Objektmenge, dass die gemäss dem geordneten Enum jeweils kleineren Flächen innerhalb der grösseren Flächen liegen. Die Sortierung des Enums muss von der kleinsten zur grössten Fläche erfolgen.";
-    !!@ fn.param = "Objects: Zu prüfende Objektmenge. GeometryAttr: Pfad zur Geometrie. CodeAttr: Pfad zum Enum";
+    !!@ fn.description = "Prüft bei der Objektmenge, dass die gemäss dem geordneten Enum oder Zahlen-Code jeweils kleineren Flächen innerhalb der grösseren Flächen liegen. Die Sortierung des Codes muss von der kleinsten zur grössten Fläche erfolgen.";
+    !!@ fn.param = "Objects: Zu prüfende Objektmenge. GeometryAttr: Pfad zur Geometrie. CodeAttr: Pfad zum geordneten Enum oder Zahlen-Code";
     !!@ fn.return = "Boolean";
     !!@ fn.since = "2024-01-23";
     FUNCTION IsInsideAreaByCode (Objects: OBJECTS OF ANYCLASS; GeometryAttr: TEXT; CodeAttr: TEXT): BOOLEAN;

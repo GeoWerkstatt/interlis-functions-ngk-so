@@ -10,8 +10,9 @@
     </ili:headersection>
     <ili:datasection>
         <TestSuite:FunctionTestTopic ili:bid="TestSuite.FunctionTestTopic">
-            <TestSuite:BaseClass ili:tid="a"><!-- Code ordered 2, 1, 4 to test sorting and gap in codes -->
-                <TestSuite:code>code_2</TestSuite:code>
+            <TestSuite:BaseClass ili:tid="a"><!-- Code enum ordered 2, 1, 4 and numeric 1, 0, 440 to test sorting and gap in codes -->
+                <TestSuite:codeEnum>code_2</TestSuite:codeEnum>
+                <TestSuite:codeNumeric>1</TestSuite:codeNumeric>
                 <TestSuite:surface>
                     <geom:surface>
                         <geom:exterior>
@@ -74,7 +75,8 @@
                 </TestSuite:surface>
             </TestSuite:BaseClass>
             <TestSuite:BaseClass ili:tid="b">
-                <TestSuite:code>code_1</TestSuite:code>
+                <TestSuite:codeEnum>code_1</TestSuite:codeEnum>
+                <TestSuite:codeNumeric>0</TestSuite:codeNumeric>
                 <TestSuite:surface>
                     <geom:surface>
                         <geom:exterior>
@@ -149,7 +151,8 @@
                 </TestSuite:surface>
             </TestSuite:BaseClass>
             <TestSuite:BaseClass ili:tid="c">
-                <TestSuite:code>code_4</TestSuite:code>
+                <TestSuite:codeEnum>code_4</TestSuite:codeEnum>
+                <TestSuite:codeNumeric>440</TestSuite:codeNumeric>
                 <TestSuite:surface>
                     <geom:surface>
                         <geom:exterior>

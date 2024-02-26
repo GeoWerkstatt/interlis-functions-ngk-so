@@ -2,6 +2,7 @@ package ch.geowerkstatt.ilivalidator.extensions.functions.ngk;
 
 import ch.ehi.basics.types.OutParam;
 import ch.interlis.ili2c.metamodel.EnumerationType;
+import ch.interlis.ili2c.metamodel.NumericType;
 import ch.interlis.ili2c.metamodel.PathEl;
 import ch.interlis.ili2c.metamodel.Type;
 import ch.interlis.ili2c.metamodel.Viewable;
@@ -69,19 +70,24 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
                         Geometry::union
                 ));
 
+        List<Geometry> sortedGeometries;
         ValueKey firstKey = geometriesByCodeValue.keySet().iterator().next();
         Type keyType = firstKey.getType();
-        if (!(keyType instanceof EnumerationType)) {
-            logger.addEvent(logger.logErrorMsg("{0}: Enumeration type expected.", usageScope));
-            return Value.createSkipEvaluation();
-        }
-        EnumerationType enumType = (EnumerationType) keyType;
-        if (!enumType.isOrdered()) {
-            logger.addEvent(logger.logErrorMsg("{0}: Enumeration type must be ordered.", usageScope));
+
+        if (keyType instanceof EnumerationType) {
+            EnumerationType enumType = (EnumerationType) keyType;
+            if (!enumType.isOrdered()) {
+                logger.addEvent(logger.logErrorMsg("{0}: Enumeration type must be ordered.", usageScope));
+                return Value.createSkipEvaluation();
+            }
+            sortedGeometries = sortByEnumValues(geometriesByCodeValue, enumType);
+        } else if (keyType instanceof NumericType) {
+            sortedGeometries = sortByNumericValues(geometriesByCodeValue);
+        } else {
+            logger.addEvent(logger.logErrorMsg("{0}: Unsupported type {1} for {2}.", usageScope, keyType.toString(), getQualifiedIliName()));
             return Value.createSkipEvaluation();
         }
 
-        List<Geometry> sortedGeometries = sortByEnumValues(geometriesByCodeValue, enumType);
         for (int i = 0; i < sortedGeometries.size() - 1; i++) {
             Geometry current = sortedGeometries.get(i);
             Geometry next = sortedGeometries.get(i + 1);
@@ -100,6 +106,14 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
         return map.entrySet()
                 .stream()
                 .sorted(Comparator.comparingInt(entry -> enumValues.indexOf(entry.getKey().getStringValue())))
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
+    }
+
+    private List<Geometry> sortByNumericValues(Map<ValueKey, Geometry> map) {
+        return map.entrySet()
+                .stream()
+                .sorted(Comparator.comparingDouble(entry -> entry.getKey().getNumericValue()))
                 .map(Map.Entry::getValue)
                 .collect(Collectors.toList());
     }
@@ -145,6 +159,10 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
 
         public String getStringValue() {
             return value.getValue();
+        }
+
+        public double getNumericValue() {
+            return value.getNumeric();
         }
 
         @Override

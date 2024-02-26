@@ -22,13 +22,15 @@ public final class IsInsideAreaByCodeIoxPluginTest {
     public void setConstraintOk() throws Ili2cFailure, IoxException {
         vh.runValidation(new String[]{TEST_DATA_OK}, new String[]{ILI_FILE});
         Assert.equals(0, vh.getErrs().size());
-        AssertionHelper.assertNoConstraintError(vh, "insideAreaConstraint");
+        AssertionHelper.assertNoConstraintError(vh, "insideAreaConstraintEnum");
+        AssertionHelper.assertNoConstraintError(vh, "insideAreaConstraintNumeric");
     }
 
     @Test
     public void setConstraintFail() throws Ili2cFailure, IoxException {
         vh.runValidation(new String[]{TEST_DATA_FAIL}, new String[]{ILI_FILE});
-        Assert.equals(1, vh.getErrs().size());
-        AssertionHelper.assertConstraintErrors(vh, 1, "insideAreaConstraint");
+        Assert.equals(2, vh.getErrs().size());
+        AssertionHelper.assertConstraintErrors(vh, 1, "insideAreaConstraintEnum");
+        AssertionHelper.assertConstraintErrors(vh, 1, "insideAreaConstraintNumeric");
     }
 }
