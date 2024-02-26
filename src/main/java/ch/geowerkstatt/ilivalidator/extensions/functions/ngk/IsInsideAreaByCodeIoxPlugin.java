@@ -32,9 +32,9 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
     protected Value evaluateInternal(String validationKind, String usageScope, IomObject contextObject, Value[] arguments) {
         Value argObjects = arguments[0];
         Value argGeometryPath = arguments[1];
-        Value argEnumPath = arguments[2];
+        Value argCodePath = arguments[2];
 
-        if (argObjects.isUndefined() || argGeometryPath.isUndefined() || argEnumPath.isUndefined()) {
+        if (argObjects.isUndefined() || argGeometryPath.isUndefined() || argCodePath.isUndefined()) {
             return Value.createSkipEvaluation();
         }
 
@@ -45,9 +45,9 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
 
         List<String> objectIds = objects.stream().map(IomObject::getobjectoid).collect(Collectors.toList());
         String geometryAttribute = argGeometryPath.getValue();
-        String enumAttribute = argEnumPath.getValue();
+        String codeAttribute = argCodePath.getValue();
 
-        InsideAreaKey key = new InsideAreaKey(objectIds, geometryAttribute, enumAttribute);
+        InsideAreaKey key = new InsideAreaKey(objectIds, geometryAttribute, codeAttribute);
         return OBJECTS_CACHE.computeIfAbsent(key, k -> {
             Viewable contextClass = EvaluationHelper.getContextClass(td, contextObject, argObjects);
             if (contextClass == null) {
@@ -55,21 +55,21 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
             }
 
             PathEl[] geometryPath = EvaluationHelper.getAttributePathEl(validator, contextClass, argGeometryPath);
-            PathEl[] enumPath = EvaluationHelper.getAttributePathEl(validator, contextClass, argEnumPath);
+            PathEl[] codePath = EvaluationHelper.getAttributePathEl(validator, contextClass, argCodePath);
 
-            return isInsideArea(usageScope, objects, geometryPath, enumPath);
+            return isInsideArea(usageScope, objects, geometryPath, codePath);
         });
     }
 
-    private Value isInsideArea(String usageScope, Collection<IomObject> objects, PathEl[] geometryPath, PathEl[] enumPath) {
-        Map<ValueKey, Geometry> geometriesByEnumValue = objects.stream()
+    private Value isInsideArea(String usageScope, Collection<IomObject> objects, PathEl[] geometryPath, PathEl[] codePath) {
+        Map<ValueKey, Geometry> geometriesByCodeValue = objects.stream()
                 .collect(Collectors.toMap(
-                        o -> getEnumValue(o, enumPath),
+                        o -> getCodeValue(o, codePath),
                         o -> getGeometryValue(o, geometryPath),
                         Geometry::union
                 ));
 
-        ValueKey firstKey = geometriesByEnumValue.keySet().iterator().next();
+        ValueKey firstKey = geometriesByCodeValue.keySet().iterator().next();
         Type keyType = firstKey.getType();
         if (!(keyType instanceof EnumerationType)) {
             logger.addEvent(logger.logErrorMsg("{0}: Enumeration type expected.", usageScope));
@@ -81,7 +81,7 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
             return Value.createSkipEvaluation();
         }
 
-        List<Geometry> sortedGeometries = sortByEnumValues(geometriesByEnumValue, enumType);
+        List<Geometry> sortedGeometries = sortByEnumValues(geometriesByCodeValue, enumType);
         for (int i = 0; i < sortedGeometries.size() - 1; i++) {
             Geometry current = sortedGeometries.get(i);
             Geometry next = sortedGeometries.get(i + 1);
@@ -104,7 +104,7 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
                 .collect(Collectors.toList());
     }
 
-    private ValueKey getEnumValue(IomObject object, PathEl[] enumPath) {
+    private ValueKey getCodeValue(IomObject object, PathEl[] enumPath) {
         Value value = validator.getValueFromObjectPath(null, object, enumPath, null);
         return new ValueKey(value);
     }
@@ -169,12 +169,12 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
     private static final class InsideAreaKey {
         private final List<String> objectIds;
         private final String geometryAttribute;
-        private final String enumAttribute;
+        private final String codeAttribute;
 
-        InsideAreaKey(List<String> objectIds, String geometryAttribute, String enumAttribute) {
+        InsideAreaKey(List<String> objectIds, String geometryAttribute, String codeAttribute) {
             this.objectIds = objectIds;
             this.geometryAttribute = geometryAttribute;
-            this.enumAttribute = enumAttribute;
+            this.codeAttribute = codeAttribute;
         }
 
         @Override
@@ -188,12 +188,12 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
             InsideAreaKey that = (InsideAreaKey) o;
             return objectIds.equals(that.objectIds)
                     && geometryAttribute.equals(that.geometryAttribute)
-                    && enumAttribute.equals(that.enumAttribute);
+                    && codeAttribute.equals(that.codeAttribute);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(objectIds, geometryAttribute, enumAttribute);
+            return Objects.hash(objectIds, geometryAttribute, codeAttribute);
         }
     }
 }
