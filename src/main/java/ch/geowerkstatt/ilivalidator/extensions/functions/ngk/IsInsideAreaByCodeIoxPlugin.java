@@ -2,6 +2,7 @@ package ch.geowerkstatt.ilivalidator.extensions.functions.ngk;
 
 import ch.ehi.basics.types.OutParam;
 import ch.interlis.ili2c.metamodel.EnumerationType;
+import ch.interlis.ili2c.metamodel.NumericType;
 import ch.interlis.ili2c.metamodel.PathEl;
 import ch.interlis.ili2c.metamodel.Type;
 import ch.interlis.ili2c.metamodel.Viewable;
@@ -20,21 +21,21 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public final class IsInsideAreaByCodeEnumIoxPlugin extends BaseInterlisFunction {
+public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
     private static final Map<InsideAreaKey, Value> OBJECTS_CACHE = new HashMap<>();
 
     @Override
     public String getQualifiedIliName() {
-        return "NGK_SO_FunctionsExt.IsInsideAreaByCodeEnum";
+        return "NGK_SO_FunctionsExt.IsInsideAreaByCode";
     }
 
     @Override
     protected Value evaluateInternal(String validationKind, String usageScope, IomObject contextObject, Value[] arguments) {
         Value argObjects = arguments[0];
         Value argGeometryPath = arguments[1];
-        Value argEnumPath = arguments[2];
+        Value argCodePath = arguments[2];
 
-        if (argObjects.isUndefined() || argGeometryPath.isUndefined() || argEnumPath.isUndefined()) {
+        if (argObjects.isUndefined() || argGeometryPath.isUndefined() || argCodePath.isUndefined()) {
             return Value.createSkipEvaluation();
         }
 
@@ -45,9 +46,9 @@ public final class IsInsideAreaByCodeEnumIoxPlugin extends BaseInterlisFunction 
 
         List<String> objectIds = objects.stream().map(IomObject::getobjectoid).collect(Collectors.toList());
         String geometryAttribute = argGeometryPath.getValue();
-        String enumAttribute = argEnumPath.getValue();
+        String codeAttribute = argCodePath.getValue();
 
-        InsideAreaKey key = new InsideAreaKey(objectIds, geometryAttribute, enumAttribute);
+        InsideAreaKey key = new InsideAreaKey(objectIds, geometryAttribute, codeAttribute);
         return OBJECTS_CACHE.computeIfAbsent(key, k -> {
             Viewable contextClass = EvaluationHelper.getContextClass(td, contextObject, argObjects);
             if (contextClass == null) {
@@ -55,33 +56,38 @@ public final class IsInsideAreaByCodeEnumIoxPlugin extends BaseInterlisFunction 
             }
 
             PathEl[] geometryPath = EvaluationHelper.getAttributePathEl(validator, contextClass, argGeometryPath);
-            PathEl[] enumPath = EvaluationHelper.getAttributePathEl(validator, contextClass, argEnumPath);
+            PathEl[] codePath = EvaluationHelper.getAttributePathEl(validator, contextClass, argCodePath);
 
-            return isInsideArea(usageScope, objects, geometryPath, enumPath);
+            return isInsideArea(usageScope, objects, geometryPath, codePath);
         });
     }
 
-    private Value isInsideArea(String usageScope, Collection<IomObject> objects, PathEl[] geometryPath, PathEl[] enumPath) {
-        Map<ValueKey, Geometry> geometriesByEnumValue = objects.stream()
+    private Value isInsideArea(String usageScope, Collection<IomObject> objects, PathEl[] geometryPath, PathEl[] codePath) {
+        Map<ValueKey, Geometry> geometriesByCodeValue = objects.stream()
                 .collect(Collectors.toMap(
-                        o -> getEnumValue(o, enumPath),
+                        o -> getCodeValue(o, codePath),
                         o -> getGeometryValue(o, geometryPath),
                         Geometry::union
                 ));
 
-        ValueKey firstKey = geometriesByEnumValue.keySet().iterator().next();
+        List<Geometry> sortedGeometries;
+        ValueKey firstKey = geometriesByCodeValue.keySet().iterator().next();
         Type keyType = firstKey.getType();
-        if (!(keyType instanceof EnumerationType)) {
-            logger.addEvent(logger.logErrorMsg("{0}: Enumeration type expected.", usageScope));
-            return Value.createSkipEvaluation();
-        }
-        EnumerationType enumType = (EnumerationType) keyType;
-        if (!enumType.isOrdered()) {
-            logger.addEvent(logger.logErrorMsg("{0}: Enumeration type must be ordered.", usageScope));
+
+        if (keyType instanceof EnumerationType) {
+            EnumerationType enumType = (EnumerationType) keyType;
+            if (!enumType.isOrdered()) {
+                logger.addEvent(logger.logErrorMsg("{0}: Enumeration type must be ordered.", usageScope));
+                return Value.createSkipEvaluation();
+            }
+            sortedGeometries = sortByEnumValues(geometriesByCodeValue, enumType);
+        } else if (keyType instanceof NumericType) {
+            sortedGeometries = sortByNumericValues(geometriesByCodeValue);
+        } else {
+            logger.addEvent(logger.logErrorMsg("{0}: Unsupported type {1} for {2}.", usageScope, keyType.toString(), getQualifiedIliName()));
             return Value.createSkipEvaluation();
         }
 
-        List<Geometry> sortedGeometries = sortByEnumValues(geometriesByEnumValue, enumType);
         for (int i = 0; i < sortedGeometries.size() - 1; i++) {
             Geometry current = sortedGeometries.get(i);
             Geometry next = sortedGeometries.get(i + 1);
@@ -104,7 +110,15 @@ public final class IsInsideAreaByCodeEnumIoxPlugin extends BaseInterlisFunction 
                 .collect(Collectors.toList());
     }
 
-    private ValueKey getEnumValue(IomObject object, PathEl[] enumPath) {
+    private List<Geometry> sortByNumericValues(Map<ValueKey, Geometry> map) {
+        return map.entrySet()
+                .stream()
+                .sorted(Comparator.comparingDouble(entry -> entry.getKey().getNumericValue()))
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
+    }
+
+    private ValueKey getCodeValue(IomObject object, PathEl[] enumPath) {
         Value value = validator.getValueFromObjectPath(null, object, enumPath, null);
         return new ValueKey(value);
     }
@@ -147,6 +161,10 @@ public final class IsInsideAreaByCodeEnumIoxPlugin extends BaseInterlisFunction 
             return value.getValue();
         }
 
+        public double getNumericValue() {
+            return value.getNumeric();
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) {
@@ -169,12 +187,12 @@ public final class IsInsideAreaByCodeEnumIoxPlugin extends BaseInterlisFunction 
     private static final class InsideAreaKey {
         private final List<String> objectIds;
         private final String geometryAttribute;
-        private final String enumAttribute;
+        private final String codeAttribute;
 
-        InsideAreaKey(List<String> objectIds, String geometryAttribute, String enumAttribute) {
+        InsideAreaKey(List<String> objectIds, String geometryAttribute, String codeAttribute) {
             this.objectIds = objectIds;
             this.geometryAttribute = geometryAttribute;
-            this.enumAttribute = enumAttribute;
+            this.codeAttribute = codeAttribute;
         }
 
         @Override
@@ -188,12 +206,12 @@ public final class IsInsideAreaByCodeEnumIoxPlugin extends BaseInterlisFunction 
             InsideAreaKey that = (InsideAreaKey) o;
             return objectIds.equals(that.objectIds)
                     && geometryAttribute.equals(that.geometryAttribute)
-                    && enumAttribute.equals(that.enumAttribute);
+                    && codeAttribute.equals(that.codeAttribute);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(objectIds, geometryAttribute, enumAttribute);
+            return Objects.hash(objectIds, geometryAttribute, codeAttribute);
         }
     }
 }
