@@ -40,6 +40,14 @@ jobs:
         ORG_GRADLE_PROJECT_SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
         ORG_GRADLE_PROJECT_SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
 
+    - name: Publish to OSSRH Maven with Gradle
+      run: ./gradlew -Pversion='${{ steps.tag_version.outputs.new_version }}' publishToSonatype closeAndReleaseSonatypeStagingRepository
+      env:
+        ORG_GRADLE_PROJECT_OSSRH_USER: ${{ secrets.OSSRH_USER }}
+        ORG_GRADLE_PROJECT_OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+        ORG_GRADLE_PROJECT_SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+        ORG_GRADLE_PROJECT_SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+
     - uses: ncipollo/release-action@a2e71bdd4e7dab70ca26a852f29600c98b33153e
       with:
         artifacts: "build/libs/*.jar"
