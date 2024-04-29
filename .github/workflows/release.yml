@@ -2,6 +2,16 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      default_bump:
+        description: 'Which type of bump to use for the new version'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 jobs:
   build:
@@ -13,6 +23,7 @@ jobs:
       id: tag_version
       uses: mathieudutour/github-tag-action@d745f2e74aaf1ee82e747b181f7a0967978abee0
       with:
+        default_bump: ${{ github.event.inputs.default_bump }}
         github_token: ${{ secrets.GITHUB_TOKEN }}
         release_branches: .*
 
