@@ -3,8 +3,8 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      default_bump:
-        description: 'Which type of bump to use for the new version'
+      requested_release_type:
+        description: 'Release type (may be overridden by commit messages, see mathieudutour/github-tag-action)'
         required: true
         default: 'patch'
         type: choice
@@ -23,7 +23,7 @@ jobs:
       id: tag_version
       uses: mathieudutour/github-tag-action@d745f2e74aaf1ee82e747b181f7a0967978abee0
       with:
-        default_bump: ${{ github.event.inputs.default_bump }}
+        default_bump: ${{ github.event.inputs.requested_release_type }}
         github_token: ${{ secrets.GITHUB_TOKEN }}
         release_branches: .*
 
