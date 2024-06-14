@@ -9,6 +9,7 @@ import ch.interlis.ili2c.metamodel.Viewable;
 import ch.interlis.iom.IomObject;
 import ch.interlis.iox_j.jts.Iox2jtsext;
 import ch.interlis.iox_j.validator.Value;
+import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 
@@ -70,7 +71,7 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
                         Geometry::union
                 ));
 
-        List<Geometry> sortedGeometries;
+        List<Map.Entry<ValueKey, Geometry>> sortedGeometries;
         ValueKey firstKey = geometriesByCodeValue.keySet().iterator().next();
         Type keyType = firstKey.getType();
 
@@ -88,33 +89,48 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
             return Value.createSkipEvaluation();
         }
 
+        boolean result = true;
         for (int i = 0; i < sortedGeometries.size() - 1; i++) {
-            Geometry current = sortedGeometries.get(i);
-            Geometry next = sortedGeometries.get(i + 1);
+            Map.Entry<ValueKey, Geometry> current = sortedGeometries.get(i);
+            Map.Entry<ValueKey, Geometry> next = sortedGeometries.get(i + 1);
 
-            if (!next.contains(current)) {
-                return new Value(false);
+            if (!next.getValue().contains(current.getValue())) {
+                Geometry offendingGeometry = current.getValue().difference(next.getValue());
+                Coordinate position = offendingGeometry.getCoordinate();
+                String offendingEnvelopeWkt = offendingGeometry.getEnvelope().toText();
+
+                String currentCode = current.getKey().getStringValue();
+                String nextCode = next.getKey().getStringValue();
+
+                logger.addEvent(logger.logErrorMsg(
+                        "IsInsideAreaByCode found an invalid overlap between code '{0}' and '{1}'. The offending geometry is inside this envelope: {2}",
+                        position.x,
+                        position.y,
+                        position.z,
+                        currentCode,
+                        nextCode,
+                        offendingEnvelopeWkt));
+
+                result = false;
             }
         }
 
-        return new Value(true);
+        return new Value(result);
     }
 
-    private List<Geometry> sortByEnumValues(Map<ValueKey, Geometry> map, EnumerationType enumType) {
+    private List<Map.Entry<ValueKey, Geometry>> sortByEnumValues(Map<ValueKey, Geometry> map, EnumerationType enumType) {
         List<String> enumValues = enumType.getValues();
 
         return map.entrySet()
                 .stream()
                 .sorted(Comparator.comparingInt(entry -> enumValues.indexOf(entry.getKey().getStringValue())))
-                .map(Map.Entry::getValue)
                 .collect(Collectors.toList());
     }
 
-    private List<Geometry> sortByNumericValues(Map<ValueKey, Geometry> map) {
+    private List<Map.Entry<ValueKey, Geometry>> sortByNumericValues(Map<ValueKey, Geometry> map) {
         return map.entrySet()
                 .stream()
                 .sorted(Comparator.comparingDouble(entry -> entry.getKey().getNumericValue()))
-                .map(Map.Entry::getValue)
                 .collect(Collectors.toList());
     }
 

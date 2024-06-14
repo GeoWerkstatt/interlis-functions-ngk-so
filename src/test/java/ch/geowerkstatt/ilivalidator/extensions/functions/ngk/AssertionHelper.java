@@ -60,4 +60,19 @@ public final class AssertionHelper {
             fail(String.format("The logs are missing the message <%s>.", expectedMessageRegex));
         }
     }
+
+    /**
+     * Asserts that the logs contain the expected message regex a specific number of times.
+     *
+     * @param logs The logs to check.
+     * @param expectedMessageRegex The regex to match.
+     * @param expectedMatchCount The expected number of matches.
+     */
+    public static void assertLogEventsMessages(List<IoxLogEvent> logs, String expectedMessageRegex, long expectedMatchCount) {
+        Pattern pattern = Pattern.compile(expectedMessageRegex);
+        long actualMatchCount = logs.stream().filter(log -> pattern.matcher(log.getEventMsg()).find()).count();
+        if (actualMatchCount != expectedMatchCount) {
+            fail(String.format("Expected %d messages to match the regex <%s> but found %d.", expectedMatchCount, expectedMessageRegex, actualMatchCount));
+        }
+    }
 }

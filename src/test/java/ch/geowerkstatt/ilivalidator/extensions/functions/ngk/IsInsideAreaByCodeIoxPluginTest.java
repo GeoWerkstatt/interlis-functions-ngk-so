@@ -29,8 +29,13 @@ public final class IsInsideAreaByCodeIoxPluginTest {
     @Test
     public void setConstraintFail() throws Ili2cFailure, IoxException {
         vh.runValidation(new String[]{TEST_DATA_FAIL}, new String[]{ILI_FILE});
-        Assert.equals(2, vh.getErrs().size());
-        AssertionHelper.assertConstraintErrors(vh, 1, "insideAreaConstraintEnum");
+        Assert.equals(9, vh.getErrs().size());
+
+        AssertionHelper.assertLogEventsMessages(vh.getErrs(), "^IsInsideAreaByCode found an invalid overlap between code 'code_2' and 'code_3'", 1);
+        AssertionHelper.assertLogEventsMessages(vh.getErrs(), "^IsInsideAreaByCode found an invalid overlap between code 'code_3' and 'code_4'", 1);
+        AssertionHelper.assertLogEventsMessages(vh.getErrs(), "^IsInsideAreaByCode found an invalid overlap between code '22' and '33'", 1);
+        AssertionHelper.assertLogEventsMessages(vh.getErrs(), "^IsInsideAreaByCode found an invalid overlap between code '33' and '44'", 1);
+        AssertionHelper.assertLogEventsMessages(vh.getErrs(), "^Custom message\\.$", 4);
         AssertionHelper.assertConstraintErrors(vh, 1, "insideAreaConstraintNumeric");
     }
 }

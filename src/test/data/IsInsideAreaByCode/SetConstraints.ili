@@ -25,6 +25,7 @@ MODEL TestSuite
       codeNumeric : CodeNumeric;
       surface : SURFACE WITH (STRAIGHTS) VERTEX CHKoord WITHOUT OVERLAPS > 0.001;
 
+      !!@ ilivalid.msg = "Custom message."
       SET CONSTRAINT insideAreaConstraintEnum: NGK_SO_FunctionsExt.IsInsideAreaByCode(ALL, "surface", "codeEnum");
       SET CONSTRAINT insideAreaConstraintNumeric: NGK_SO_FunctionsExt.IsInsideAreaByCode(ALL, "surface", "codeNumeric");
     END BaseClass;
