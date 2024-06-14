@@ -88,16 +88,17 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
             return Value.createSkipEvaluation();
         }
 
+        boolean result = true;
         for (int i = 0; i < sortedGeometries.size() - 1; i++) {
             Geometry current = sortedGeometries.get(i);
             Geometry next = sortedGeometries.get(i + 1);
 
             if (!next.contains(current)) {
-                return new Value(false);
+                result = false;
             }
         }
 
-        return new Value(true);
+        return new Value(result);
     }
 
     private List<Geometry> sortByEnumValues(Map<ValueKey, Geometry> map, EnumerationType enumType) {
