@@ -103,7 +103,7 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
                 String nextCode = next.getKey().getStringValue();
 
                 logger.addEvent(logger.logErrorMsg(
-                        "IsInsideAreaByCode found an invalid overlap between code '{0}' and '{1}'. The offending geometry is near this point: {2}",
+                        "IsInsideAreaByCode found an invalid overlap between code '{0}' and '{1}'. The offending geometry has it's centroid at point: {2}",
                         centroid.getX(),
                         centroid.getY(),
                         null,
