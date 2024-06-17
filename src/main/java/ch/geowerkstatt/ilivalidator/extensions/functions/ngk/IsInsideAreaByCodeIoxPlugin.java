@@ -9,9 +9,9 @@ import ch.interlis.ili2c.metamodel.Viewable;
 import ch.interlis.iom.IomObject;
 import ch.interlis.iox_j.jts.Iox2jtsext;
 import ch.interlis.iox_j.validator.Value;
-import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -96,20 +96,20 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
 
             if (!next.getValue().contains(current.getValue())) {
                 Geometry offendingGeometry = current.getValue().difference(next.getValue());
-                Coordinate position = offendingGeometry.getCoordinate();
-                String offendingEnvelopeWkt = offendingGeometry.getEnvelope().toText();
+                Point centroid = offendingGeometry.getCentroid();
+                String offendingCentroidWkt = centroid.toText();
 
                 String currentCode = current.getKey().getStringValue();
                 String nextCode = next.getKey().getStringValue();
 
                 logger.addEvent(logger.logErrorMsg(
-                        "IsInsideAreaByCode found an invalid overlap between code '{0}' and '{1}'. The offending geometry is inside this envelope: {2}",
-                        position.x,
-                        position.y,
-                        position.z,
+                        "IsInsideAreaByCode found an invalid overlap between code '{0}' and '{1}'. The offending geometry is near this point: {2}",
+                        centroid.getX(),
+                        centroid.getY(),
+                        null,
                         currentCode,
                         nextCode,
-                        offendingEnvelopeWkt));
+                        offendingCentroidWkt));
 
                 result = false;
             }
