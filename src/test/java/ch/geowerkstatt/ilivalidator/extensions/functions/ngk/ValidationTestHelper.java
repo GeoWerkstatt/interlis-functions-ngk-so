@@ -1,12 +1,12 @@
 package ch.geowerkstatt.ilivalidator.extensions.functions.ngk;
 
 import ch.ehi.basics.settings.Settings;
+import ch.interlis.ili2c.Ili2c;
 import ch.interlis.ili2c.Ili2cFailure;
 import ch.interlis.ili2c.metamodel.TransferDescription;
 import ch.interlis.iox.EndTransferEvent;
 import ch.interlis.iox.IoxEvent;
 import ch.interlis.iox.IoxException;
-import ch.interlis.iox.IoxLogEvent;
 import ch.interlis.iox.IoxReader;
 import ch.interlis.iox_j.IoxIliReader;
 import ch.interlis.iox_j.PipelinePool;
@@ -22,29 +22,33 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 public final class ValidationTestHelper {
+    public static final String FUNCTIONS_EXT_ILI_PATH = "src/model/NGK_SO_FunctionsExt.ili";
+    public static final String FUNCTIONS_EXT_23_ILI_PATH = "src/model/NGK_SO_FunctionsExt_23.ili";
 
-    private final HashMap<String, Class<InterlisFunction>> userFunctions = new HashMap<>();
-    private LogCollector logCollector;
+    private final HashMap<String, Class<? extends InterlisFunction>> userFunctions = new HashMap<>();
 
-    public void runValidation(String[] dataFiles, String[] modelFiles) throws IoxException, Ili2cFailure {
+    public ValidationTestHelper(InterlisFunction... userFunctions) {
+        for (InterlisFunction function : userFunctions) {
+            this.userFunctions.put(function.getQualifiedIliName(), function.getClass());
+        }
+    }
+
+    public LogCollector runValidation(String[] dataFiles, String[] modelFiles) throws IoxException, Ili2cFailure {
         dataFiles = addLeadingTestDataDirectory(dataFiles);
         modelFiles = addLeadingTestDataDirectory(modelFiles);
-        modelFiles = appendFunctionsExtIli(modelFiles);
+        modelFiles = prependFunctionsExtIli(modelFiles);
 
-        logCollector = new LogCollector();
+        TransferDescription td = Ili2c.compileIliFiles(new ArrayList<>(Arrays.asList(modelFiles)), new ArrayList<String>());
+
+        LogCollector logger = new LogCollector();
         LogEventFactory errFactory = new LogEventFactory();
-        errFactory.setLogger(logCollector);
-
-        Settings settings = new Settings();
-        settings.setTransientObject(ch.interlis.iox_j.validator.Validator.CONFIG_CUSTOM_FUNCTIONS, userFunctions);
-
-        TransferDescription td = ch.interlis.ili2c.Ili2c.compileIliFiles(new ArrayList<>(Arrays.asList(modelFiles)), new ArrayList<String>());
-
-        ValidationConfig modelConfig = new ValidationConfig();
-        modelConfig.mergeIliMetaAttrs(td);
-
         PipelinePool pool = new PipelinePool();
-        Validator validator = new ch.interlis.iox_j.validator.Validator(td, modelConfig, logCollector, errFactory, pool, settings);
+        Settings settings = new Settings();
+        ValidationConfig modelConfig = new ValidationConfig();
+
+        settings.setTransientObject(ch.interlis.iox_j.validator.Validator.CONFIG_CUSTOM_FUNCTIONS, userFunctions);
+        modelConfig.mergeIliMetaAttrs(td);
+        Validator validator = new Validator(td, modelConfig, logger, errFactory, pool, settings);
 
         for (String filename : dataFiles) {
             IoxReader ioxReader = new ReaderFactory().createReader(new java.io.File(filename), errFactory, settings);
@@ -64,34 +68,24 @@ public final class ValidationTestHelper {
                 }
             }
         }
+
+        return logger;
     }
 
-    private String[] appendFunctionsExtIli(String[] modelDirs) {
+    private String[] prependFunctionsExtIli(String[] modelDirs) {
         System.out.println("Working Directory = " + System.getProperty("user.dir"));
-        String functionsExtIliPath = "src/model/NGK_SO_FunctionsExt.ili";
-        ArrayList<String> result = new ArrayList<>();
-        result.add(functionsExtIliPath);
-        result.addAll(Arrays.asList(modelDirs));
-        return result.toArray(new String[0]);
+
+        String[] result = new String[modelDirs.length + 1];
+        result[0] = FUNCTIONS_EXT_ILI_PATH;
+        System.arraycopy(modelDirs,0, result, 1, modelDirs.length);
+
+        return result;
     }
 
-    @SuppressWarnings("unchecked")
-    public void addFunction(InterlisFunction function) {
-        userFunctions.put(function.getQualifiedIliName(), (Class<InterlisFunction>) function.getClass());
-    }
-
-    public String[] addLeadingTestDataDirectory(String[] files) {
+    private String[] addLeadingTestDataDirectory(String[] files) {
         return Arrays
                 .stream(files).map(file -> Paths.get("src/test/data", file).toString())
                 .distinct()
                 .toArray(String[]::new);
-    }
-
-    public ArrayList<IoxLogEvent> getErrs() {
-        return logCollector.getErrs();
-    }
-
-    public ArrayList<IoxLogEvent> getWarn() {
-        return logCollector.getWarn();
     }
 }

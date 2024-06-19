@@ -14,28 +14,27 @@ public final class IsInsideAreaByCodeIoxPluginTest {
 
     @BeforeEach
     public void setUp() {
-        vh = new ValidationTestHelper();
-        vh.addFunction(new IsInsideAreaByCodeIoxPlugin());
+        vh = new ValidationTestHelper(new IsInsideAreaByCodeIoxPlugin());
     }
 
     @Test
     public void setConstraintOk() throws Ili2cFailure, IoxException {
-        vh.runValidation(new String[]{TEST_DATA_OK}, new String[]{ILI_FILE});
-        Assert.equals(0, vh.getErrs().size());
-        AssertionHelper.assertNoConstraintError(vh, "insideAreaConstraintEnum");
-        AssertionHelper.assertNoConstraintError(vh, "insideAreaConstraintNumeric");
+        LogCollector logger = vh.runValidation(new String[]{TEST_DATA_OK}, new String[]{ILI_FILE});
+        Assert.equals(0, logger.getErrs().size());
+        AssertionHelper.assertNoConstraintError(logger, "insideAreaConstraintEnum");
+        AssertionHelper.assertNoConstraintError(logger, "insideAreaConstraintNumeric");
     }
 
     @Test
     public void setConstraintFail() throws Ili2cFailure, IoxException {
-        vh.runValidation(new String[]{TEST_DATA_FAIL}, new String[]{ILI_FILE});
-        Assert.equals(9, vh.getErrs().size());
+        LogCollector logger = vh.runValidation(new String[]{TEST_DATA_FAIL}, new String[]{ILI_FILE});
+        Assert.equals(9, logger.getErrs().size());
 
-        AssertionHelper.assertLogEventsMessages(vh.getErrs(), "^IsInsideAreaByCode found an invalid overlap between code 'code_2' and 'code_3'", 1);
-        AssertionHelper.assertLogEventsMessages(vh.getErrs(), "^IsInsideAreaByCode found an invalid overlap between code 'code_3' and 'code_4'", 1);
-        AssertionHelper.assertLogEventsMessages(vh.getErrs(), "^IsInsideAreaByCode found an invalid overlap between code '22' and '33'", 1);
-        AssertionHelper.assertLogEventsMessages(vh.getErrs(), "^IsInsideAreaByCode found an invalid overlap between code '33' and '44'", 1);
-        AssertionHelper.assertLogEventsMessages(vh.getErrs(), "^Custom message\\.$", 4);
-        AssertionHelper.assertConstraintErrors(vh, 1, "insideAreaConstraintNumeric");
+        AssertionHelper.assertLogEventsMessages(logger.getErrs(), "^IsInsideAreaByCode found an invalid overlap between code 'code_2' and 'code_3'", 1);
+        AssertionHelper.assertLogEventsMessages(logger.getErrs(), "^IsInsideAreaByCode found an invalid overlap between code 'code_3' and 'code_4'", 1);
+        AssertionHelper.assertLogEventsMessages(logger.getErrs(), "^IsInsideAreaByCode found an invalid overlap between code '22' and '33'", 1);
+        AssertionHelper.assertLogEventsMessages(logger.getErrs(), "^IsInsideAreaByCode found an invalid overlap between code '33' and '44'", 1);
+        AssertionHelper.assertLogEventsMessages(logger.getErrs(), "^Custom message\\.$", 4);
+        AssertionHelper.assertConstraintErrors(logger, 1, "insideAreaConstraintNumeric");
     }
 }
