@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
 
     - name: Get next Version
       id: tag_version
@@ -20,7 +20,7 @@ jobs:
         release_branches : .*
         dry_run: true
 
-    - uses: actions/cache@v1
+    - uses: actions/cache@v4
       with:
         path: ~/.gradle/caches
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
@@ -28,7 +28,7 @@ jobs:
           ${{ runner.os }}-gradle-
 
     - name: Set up JDK 1.8
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         java-version: 8
         distribution: temurin
@@ -52,7 +52,7 @@ jobs:
         ORG_GRADLE_PROJECT_SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
         ORG_GRADLE_PROJECT_SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
 
-    - uses: ncipollo/release-action@a2e71bdd4e7dab70ca26a852f29600c98b33153e
+    - uses: ncipollo/release-action@v1.14.0
       with:
         artifacts: "build/libs/*.jar"
         allowUpdates: true
