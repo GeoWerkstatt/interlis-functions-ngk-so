@@ -6,6 +6,7 @@ import com.vividsolutions.jts.util.Assert;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public final class AssertionHelper {
@@ -74,5 +75,14 @@ public final class AssertionHelper {
         if (actualMatchCount != expectedMatchCount) {
             fail(String.format("Expected %d messages to match the regex <%s> but found %d.", expectedMatchCount, expectedMessageRegex, actualMatchCount));
         }
+    }
+
+    public static void AssertEventMessagesAreEqual(List<IoxLogEvent> events, String... expectedMessages){
+        String[] actualMessages = new String[events.size()];
+        for (int i = 0; i < events.size(); i++) {
+            actualMessages[i] = events.get(i).getEventMsg();
+        }
+
+        assertArrayEquals(expectedMessages, actualMessages);
     }
 }

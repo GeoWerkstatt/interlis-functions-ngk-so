@@ -4,12 +4,12 @@ import ch.ehi.basics.settings.Settings;
 import ch.interlis.ili2c.Ili2c;
 import ch.interlis.ili2c.Ili2cFailure;
 import ch.interlis.ili2c.metamodel.TransferDescription;
+import ch.interlis.iom.IomObject;
 import ch.interlis.iox.EndTransferEvent;
 import ch.interlis.iox.IoxEvent;
 import ch.interlis.iox.IoxException;
 import ch.interlis.iox.IoxReader;
-import ch.interlis.iox_j.IoxIliReader;
-import ch.interlis.iox_j.PipelinePool;
+import ch.interlis.iox_j.*;
 import ch.interlis.iox_j.logging.LogEventFactory;
 import ch.interlis.iox_j.utility.ReaderFactory;
 import ch.interlis.iox_j.validator.InterlisFunction;
@@ -69,6 +69,31 @@ public final class ValidationTestHelper {
             }
         }
 
+        return logger;
+    }
+
+    public LogCollector runValidation(String[] modelFiles, String topic, IomObject... objects) throws Ili2cFailure {
+        modelFiles = addLeadingTestDataDirectory(modelFiles);
+        modelFiles = prependFunctionsExtIli(modelFiles);
+        TransferDescription td = Ili2c.compileIliFiles(new ArrayList<>(Arrays.asList(modelFiles)), new ArrayList<String>());
+
+        LogCollector logger = new LogCollector();
+        LogEventFactory errFactory = new LogEventFactory();
+        PipelinePool pool = new PipelinePool();
+        Settings settings = new Settings();
+        ValidationConfig modelConfig = new ValidationConfig();
+
+        settings.setTransientObject(ch.interlis.iox_j.validator.Validator.CONFIG_CUSTOM_FUNCTIONS, userFunctions);
+        modelConfig.mergeIliMetaAttrs(td);
+        Validator validator = new Validator(td, modelConfig, logger, errFactory, pool, settings);
+
+        validator.validate(new StartTransferEvent());
+        validator.validate(new StartBasketEvent(topic, "b1"));
+        for (IomObject object : objects) {
+            validator.validate(new ObjectEvent(object));
+        }
+        validator.validate(new EndBasketEvent());
+        validator.validate(new ch.interlis.iox_j.EndTransferEvent());
         return logger;
     }
 

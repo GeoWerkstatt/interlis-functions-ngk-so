@@ -1,11 +1,7 @@
 package ch.geowerkstatt.ilivalidator.extensions.functions.ngk;
 
 import ch.ehi.basics.types.OutParam;
-import ch.interlis.ili2c.metamodel.EnumerationType;
-import ch.interlis.ili2c.metamodel.NumericType;
-import ch.interlis.ili2c.metamodel.PathEl;
-import ch.interlis.ili2c.metamodel.Type;
-import ch.interlis.ili2c.metamodel.Viewable;
+import ch.interlis.ili2c.metamodel.*;
 import ch.interlis.iom.IomObject;
 import ch.interlis.iox_j.jts.Iox2jtsext;
 import ch.interlis.iox_j.validator.Value;
@@ -13,13 +9,9 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
@@ -71,17 +63,16 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
                         Geometry::union
                 ));
 
-        List<Map.Entry<ValueKey, Geometry>> sortedGeometries;
+        for (Map.Entry<ValueKey, Geometry> entry : geometriesByCodeValue.entrySet()) {
+            entry.getValue().setUserData(entry.getKey().getStringValue());
+        }
+
+        List<Geometry> sortedGeometries;
         ValueKey firstKey = geometriesByCodeValue.keySet().iterator().next();
         Type keyType = firstKey.getType();
 
         if (keyType instanceof EnumerationType) {
-            EnumerationType enumType = (EnumerationType) keyType;
-            if (!enumType.isOrdered()) {
-                logger.addEvent(logger.logErrorMsg("{0}: Enumeration type must be ordered.", usageScope));
-                return Value.createSkipEvaluation();
-            }
-            sortedGeometries = sortByEnumValues(geometriesByCodeValue, enumType);
+            sortedGeometries = sortByEnumValues(geometriesByCodeValue, this::getCodeIntKey);
         } else if (keyType instanceof NumericType) {
             sortedGeometries = sortByNumericValues(geometriesByCodeValue);
         } else {
@@ -91,24 +82,21 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
 
         boolean result = true;
         for (int i = 0; i < sortedGeometries.size() - 1; i++) {
-            Map.Entry<ValueKey, Geometry> current = sortedGeometries.get(i);
-            Map.Entry<ValueKey, Geometry> next = sortedGeometries.get(i + 1);
+            Geometry current = sortedGeometries.get(i);
+            Geometry next = sortedGeometries.get(i + 1);
 
-            if (!next.getValue().contains(current.getValue())) {
-                Geometry offendingGeometry = current.getValue().difference(next.getValue());
+            if (!next.contains(current)) {
+                Geometry offendingGeometry = current.difference(next);
                 Point centroid = offendingGeometry.getCentroid();
                 String offendingCentroidWkt = centroid.toText();
-
-                String currentCode = current.getKey().getStringValue();
-                String nextCode = next.getKey().getStringValue();
 
                 logger.addEvent(logger.logErrorMsg(
                         "IsInsideAreaByCode found an invalid overlap between code '{0}' and '{1}'. The offending geometry has it's centroid at point: {2}",
                         centroid.getX(),
                         centroid.getY(),
                         null,
-                        currentCode,
-                        nextCode,
+                        current.getUserData().toString(),
+                        next.getUserData().toString(),
                         offendingCentroidWkt));
 
                 result = false;
@@ -118,19 +106,43 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
         return new Value(result);
     }
 
-    private List<Map.Entry<ValueKey, Geometry>> sortByEnumValues(Map<ValueKey, Geometry> map, EnumerationType enumType) {
-        List<String> enumValues = enumType.getValues();
-
+    private List<Geometry> sortByEnumValues(Map<ValueKey, Geometry> map, Function<ValueKey, Integer> keySortOrder) {
         return map.entrySet()
                 .stream()
-                .sorted(Comparator.comparingInt(entry -> enumValues.indexOf(entry.getKey().getStringValue())))
+                .collect(Collectors.toMap(
+                        e -> keySortOrder.apply(e.getKey()),
+                        Map.Entry::getValue,
+                        (a, b) -> {
+                            Geometry geometry = a.union(b);
+                            geometry.setUserData(a.getUserData() + ", " + b.getUserData());
+                            return geometry;
+                        }
+                ))
+                .entrySet()
+                .stream()
+                .sorted(Comparator.comparingInt(Map.Entry::getKey))
+                .map(Map.Entry::getValue)
                 .collect(Collectors.toList());
     }
 
-    private List<Map.Entry<ValueKey, Geometry>> sortByNumericValues(Map<ValueKey, Geometry> map) {
+    private int getCodeIntKey(ValueKey key) {
+        try {
+            return Integer.parseInt(key.getStringValue().substring(key.getStringValue().lastIndexOf("_") + 1));
+        } catch (NumberFormatException e) {
+            return Integer.MAX_VALUE;
+        }
+    }
+
+    private int getOrderedEnumIndex(ValueKey key) {
+        List<String> enumValues = ((EnumerationType)key.getType()).getValues();
+        return enumValues.indexOf(key.getStringValue());
+    }
+
+    private List<Geometry> sortByNumericValues(Map<ValueKey, Geometry> map) {
         return map.entrySet()
                 .stream()
                 .sorted(Comparator.comparingDouble(entry -> entry.getKey().getNumericValue()))
+                .map(Map.Entry::getValue)
                 .collect(Collectors.toList());
     }
 
