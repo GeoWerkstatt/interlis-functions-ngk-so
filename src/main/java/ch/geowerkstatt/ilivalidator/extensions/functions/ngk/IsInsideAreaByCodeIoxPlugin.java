@@ -76,7 +76,7 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
         Type keyType = firstKey.getType();
 
         if (keyType instanceof EnumerationType) {
-            sortedGeometries = sortByEnumValues(geometriesByCodeValue, this::extractCodeIntKey);
+            sortedGeometries = prepareGeometries(geometriesByCodeValue, this::extractCodeIntKey);
         } else if (keyType instanceof NumericType) {
             sortedGeometries = sortByNumericValues(geometriesByCodeValue);
         } else {
@@ -110,8 +110,8 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
         return new Value(result);
     }
 
-    private List<Geometry> sortByEnumValues(Map<ValueKey, Geometry> map, Function<ValueKey, Integer> keySortOrder) {
-        return map.entrySet()
+    private List<Geometry> prepareGeometries(Map<ValueKey, Geometry> map, Function<ValueKey, Integer> keySortOrder) {
+        Map<Integer, Geometry> combinedBySortOrderKey = map.entrySet()
                 .stream()
                 .collect(Collectors.toMap(
                         e -> keySortOrder.apply(e.getKey()),
@@ -121,8 +121,9 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
                             geometry.setUserData(a.getUserData() + ", " + b.getUserData());
                             return geometry;
                         }
-                ))
-                .entrySet()
+                ));
+
+        return combinedBySortOrderKey.entrySet()
                 .stream()
                 .sorted(Comparator.comparingInt(Map.Entry::getKey))
                 .map(Map.Entry::getValue)
