@@ -9,7 +9,12 @@ import ch.interlis.iox.EndTransferEvent;
 import ch.interlis.iox.IoxEvent;
 import ch.interlis.iox.IoxException;
 import ch.interlis.iox.IoxReader;
-import ch.interlis.iox_j.*;
+import ch.interlis.iox_j.EndBasketEvent;
+import ch.interlis.iox_j.IoxIliReader;
+import ch.interlis.iox_j.ObjectEvent;
+import ch.interlis.iox_j.PipelinePool;
+import ch.interlis.iox_j.StartBasketEvent;
+import ch.interlis.iox_j.StartTransferEvent;
 import ch.interlis.iox_j.logging.LogEventFactory;
 import ch.interlis.iox_j.utility.ReaderFactory;
 import ch.interlis.iox_j.validator.InterlisFunction;
@@ -22,8 +27,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 public final class ValidationTestHelper {
-    public static final String FUNCTIONS_EXT_ILI_PATH = "src/model/NGK_SO_FunctionsExt.ili";
-    public static final String FUNCTIONS_EXT_23_ILI_PATH = "src/model/NGK_SO_FunctionsExt_23.ili";
+    private static final String FUNCTIONS_EXT_ILI_PATH = "src/model/NGK_SO_FunctionsExt.ili";
+    private static final String FUNCTIONS_EXT_23_ILI_PATH = "src/model/NGK_SO_FunctionsExt_23.ili";
 
     private final HashMap<String, Class<? extends InterlisFunction>> userFunctions = new HashMap<>();
 
@@ -102,7 +107,7 @@ public final class ValidationTestHelper {
 
         String[] result = new String[modelDirs.length + 1];
         result[0] = FUNCTIONS_EXT_ILI_PATH;
-        System.arraycopy(modelDirs,0, result, 1, modelDirs.length);
+        System.arraycopy(modelDirs, 0, result, 1, modelDirs.length);
 
         return result;
     }

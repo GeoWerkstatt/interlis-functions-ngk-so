@@ -77,7 +77,7 @@ public final class AssertionHelper {
         }
     }
 
-    public static void AssertEventMessagesAreEqual(List<IoxLogEvent> events, String... expectedMessages){
+    public static void assertEventMessagesAreEqual(List<IoxLogEvent> events, String... expectedMessages) {
         String[] actualMessages = new String[events.size()];
         for (int i = 0; i < events.size(); i++) {
             actualMessages[i] = events.get(i).getEventMsg();

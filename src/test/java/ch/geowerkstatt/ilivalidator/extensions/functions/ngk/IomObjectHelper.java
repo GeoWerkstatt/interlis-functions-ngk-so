@@ -3,7 +3,11 @@ package ch.geowerkstatt.ilivalidator.extensions.functions.ngk;
 import ch.interlis.iom.IomObject;
 import ch.interlis.iom_j.Iom_jObject;
 
-public class IomObjectHelper {
+public final class IomObjectHelper {
+
+    private IomObjectHelper() {
+        // Utility class
+    }
 
     /**
      * Create an IomObject containing a rectangle surface geometry with the specified corner coordinates.

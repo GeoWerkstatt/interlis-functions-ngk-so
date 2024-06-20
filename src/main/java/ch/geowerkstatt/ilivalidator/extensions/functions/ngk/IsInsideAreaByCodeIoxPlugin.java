@@ -1,7 +1,11 @@
 package ch.geowerkstatt.ilivalidator.extensions.functions.ngk;
 
 import ch.ehi.basics.types.OutParam;
-import ch.interlis.ili2c.metamodel.*;
+import ch.interlis.ili2c.metamodel.EnumerationType;
+import ch.interlis.ili2c.metamodel.NumericType;
+import ch.interlis.ili2c.metamodel.PathEl;
+import ch.interlis.ili2c.metamodel.Type;
+import ch.interlis.ili2c.metamodel.Viewable;
 import ch.interlis.iom.IomObject;
 import ch.interlis.iox_j.jts.Iox2jtsext;
 import ch.interlis.iox_j.validator.Value;
@@ -134,7 +138,7 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
     }
 
     private int getOrderedEnumIndex(ValueKey key) {
-        List<String> enumValues = ((EnumerationType)key.getType()).getValues();
+        List<String> enumValues = ((EnumerationType) key.getType()).getValues();
         return enumValues.indexOf(key.getStringValue());
     }
 
