@@ -60,7 +60,7 @@ jobs:
         ORG_GRADLE_PROJECT_SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
         ORG_GRADLE_PROJECT_SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
 
-    - uses: ncipollo/release-action@a2e71bdd4e7dab70ca26a852f29600c98b33153e
+    - uses: ncipollo/release-action@v1.14.0
       with:
         artifacts: "build/libs/*.jar"
         makeLatest: true
