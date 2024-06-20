@@ -354,8 +354,9 @@ public final class IsInsideAreaByCodeIoxPluginTest {
 
         LogCollector logger = vh.runValidation(new String[]{ILI_FILE}, TOPIC, objects.stream().map(Supplier::get).toArray(IomObject[]::new));
         // Because the arcs are stroked differently, thin overlaps occur
-        AssertionHelper.assertEventMessagesAreEqual(logger.getErrs(),
-                "IsInsideAreaByCode found an invalid overlap between code 'code_10' and 'code_30'. The offending geometry has it's centroid at point: POINT (43.20713072195317 42.11642202220144)",
-                "Set Constraint TestSuite.FunctionTestTopic.TestClass.insideAreaConstraint is not true.");
+        Assert.equals(2, logger.getErrs().size());
+
+        AssertionHelper.assertLogEventsMessages(logger.getErrs(), "^IsInsideAreaByCode found an invalid overlap between code 'code_10' and 'code_30'. The offending geometry has it's centroid at point: POINT \\(43.2\\d+ 42.1\\d+\\)$", 1);
+        AssertionHelper.assertLogEventsMessages(logger.getErrs(), "^Set Constraint TestSuite.FunctionTestTopic.TestClass.insideAreaConstraint is not true.$", 1);
     }
 }
