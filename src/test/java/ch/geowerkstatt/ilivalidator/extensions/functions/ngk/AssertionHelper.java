@@ -6,6 +6,7 @@ import com.vividsolutions.jts.util.Assert;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public final class AssertionHelper {
@@ -14,9 +15,9 @@ public final class AssertionHelper {
         // Utility class
     }
 
-    public static void assertConstraintErrors(ValidationTestHelper vh, int expectedCount, String oid, String constraintName) {
+    public static void assertConstraintErrors(LogCollector logger, int expectedCount, String oid, String constraintName) {
         int errorsFound = 0;
-        for (IoxLogEvent err : vh.getErrs()) {
+        for (IoxLogEvent err : logger.getErrs()) {
             if (oid.equals(err.getSourceObjectXtfId()) && err.getEventMsg().contains(String.format(".%s ", constraintName))) {
                 errorsFound++;
             }
@@ -26,13 +27,13 @@ public final class AssertionHelper {
                 String.format("Expected %d but found %d errors with OID <%s> and Source <%s>.", expectedCount, errorsFound, oid, constraintName));
     }
 
-    public static void assertSingleConstraintError(ValidationTestHelper vh, int oid, String constraintName) {
-        assertConstraintErrors(vh, 1, Integer.toString(oid), constraintName);
+    public static void assertSingleConstraintError(LogCollector logger, int oid, String constraintName) {
+        assertConstraintErrors(logger, 1, Integer.toString(oid), constraintName);
     }
 
-    public static void assertConstraintErrors(ValidationTestHelper vh, int expectedCount, String constraintName) {
+    public static void assertConstraintErrors(LogCollector logger, int expectedCount, String constraintName) {
         int errorsFound = 0;
-        for (IoxLogEvent err : vh.getErrs()) {
+        for (IoxLogEvent err : logger.getErrs()) {
             if (err.getEventMsg().contains(String.format(".%s ", constraintName))) {
                 errorsFound++;
             }
@@ -42,9 +43,9 @@ public final class AssertionHelper {
                 String.format("Expected %s errors with Source <%s> but found %d.", expectedCount, constraintName, errorsFound));
     }
 
-    public static void assertNoConstraintError(ValidationTestHelper vh, String constraintName) {
+    public static void assertNoConstraintError(LogCollector logger, String constraintName) {
         int errorsFound = 0;
-        for (IoxLogEvent err : vh.getErrs()) {
+        for (IoxLogEvent err : logger.getErrs()) {
             if (err.getEventMsg().contains(String.format(".%s ", constraintName))) {
                 errorsFound++;
             }
@@ -74,5 +75,14 @@ public final class AssertionHelper {
         if (actualMatchCount != expectedMatchCount) {
             fail(String.format("Expected %d messages to match the regex <%s> but found %d.", expectedMatchCount, expectedMessageRegex, actualMatchCount));
         }
+    }
+
+    public static void assertEventMessagesAreEqual(List<IoxLogEvent> events, String... expectedMessages) {
+        String[] actualMessages = new String[events.size()];
+        for (int i = 0; i < events.size(); i++) {
+            actualMessages[i] = events.get(i).getEventMsg();
+        }
+
+        assertArrayEquals(expectedMessages, actualMessages);
     }
 }
