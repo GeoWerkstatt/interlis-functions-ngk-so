@@ -9,17 +9,21 @@ import ch.interlis.ili2c.metamodel.Viewable;
 import ch.interlis.iom.IomObject;
 import ch.interlis.iox_j.jts.Iox2jtsext;
 import ch.interlis.iox_j.validator.Value;
+import com.vividsolutions.jts.algorithm.InteriorPointArea;
+import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 
 import java.util.*;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
     private static final Map<InsideAreaKey, Value> OBJECTS_CACHE = new HashMap<>();
+    private static GeometryFactory factory = new GeometryFactory();
 
     @Override
     public String getQualifiedIliName() {
@@ -89,19 +93,44 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
             Geometry current = sortedGeometries.get(i);
             Geometry next = sortedGeometries.get(i + 1);
 
-            if (!next.contains(current)) {
+            if (!next.covers(current)) {
                 Geometry offendingGeometry = current.difference(next);
-                Point centroid = offendingGeometry.getCentroid();
-                String offendingCentroidWkt = centroid.toText();
+                if (offendingGeometry.isEmpty()) {
+                    // Buffer current geometry to get a nonempty geometry.
+                    Geometry bufferedCurrent = current.buffer(0.01);
+                    offendingGeometry = bufferedCurrent.difference(next);
+                    if (offendingGeometry.isEmpty()) {
+                        logger.addEvent(logger.logErrorMsg(
+                                "IsInsideAreaByCode found a topological error between code '{0}' and '{1}'",
+                                current.getUserData().toString(),
+                                next.getUserData().toString()));
+                    } else {
+                        Geometry envelope = offendingGeometry.getEnvelope();
+                        String envelopeWkt = envelope.toText();
+                        Point errorPoint = envelope.getCentroid();
 
-                logger.addEvent(logger.logErrorMsg(
-                        "IsInsideAreaByCode found an invalid overlap between code '{0}' and '{1}'. The offending geometry has it's centroid at point: {2}",
-                        centroid.getX(),
-                        centroid.getY(),
-                        null,
-                        current.getUserData().toString(),
-                        next.getUserData().toString(),
-                        offendingCentroidWkt));
+                        logger.addEvent(logger.logErrorMsg(
+                                "IsInsideAreaByCode found a topological error (probably missing support point) between code '{0}' and '{1}'. The offending geometry is inside the envelope: {2}",
+                                errorPoint.getX(),
+                                errorPoint.getY(),
+                                null,
+                                current.getUserData().toString(),
+                                next.getUserData().toString(),
+                                envelopeWkt));
+                    }
+                } else {
+                    Coordinate errorPoint = new InteriorPointArea(offendingGeometry).getInteriorPoint();
+                    String errorPointWkt = factory.createPoint(errorPoint).toText();
+
+                    logger.addEvent(logger.logErrorMsg(
+                            "IsInsideAreaByCode found an invalid overlap or topological error (missing support point) between code '{0}' and '{1}'. The offending geometry is near: {2}",
+                            errorPoint.x,
+                            errorPoint.y,
+                            null,
+                            current.getUserData().toString(),
+                            next.getUserData().toString(),
+                            errorPointWkt));
+                }
 
                 result = false;
             }

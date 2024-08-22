@@ -54,10 +54,10 @@ public final class IsInsideAreaByCodeIoxPluginTest {
         LogCollector logger = vh.runValidation(new String[]{TEST_DATA_FAIL}, new String[]{ILI_FILE});
         Assert.equals(9, logger.getErrs().size());
 
-        AssertionHelper.assertLogEventsMessages(logger.getErrs(), "^IsInsideAreaByCode found an invalid overlap between code 'code_2' and 'code_3'", 1);
-        AssertionHelper.assertLogEventsMessages(logger.getErrs(), "^IsInsideAreaByCode found an invalid overlap between code 'code_3' and 'code_4'", 1);
-        AssertionHelper.assertLogEventsMessages(logger.getErrs(), "^IsInsideAreaByCode found an invalid overlap between code '22' and '33'", 1);
-        AssertionHelper.assertLogEventsMessages(logger.getErrs(), "^IsInsideAreaByCode found an invalid overlap between code '33' and '44'", 1);
+        AssertionHelper.assertLogEventsMessages(logger.getErrs(), "^IsInsideAreaByCode found an invalid overlap or topological error \\(missing support point\\) between code 'code_2' and 'code_3'", 1);
+        AssertionHelper.assertLogEventsMessages(logger.getErrs(), "^IsInsideAreaByCode found an invalid overlap or topological error \\(missing support point\\) between code 'code_3' and 'code_4'", 1);
+        AssertionHelper.assertLogEventsMessages(logger.getErrs(), "^IsInsideAreaByCode found an invalid overlap or topological error \\(missing support point\\) between code '22' and '33'", 1);
+        AssertionHelper.assertLogEventsMessages(logger.getErrs(), "^IsInsideAreaByCode found an invalid overlap or topological error \\(missing support point\\) between code '33' and '44'", 1);
         AssertionHelper.assertLogEventsMessages(logger.getErrs(), "^Custom message\\.$", 4);
         AssertionHelper.assertConstraintErrors(logger, 1, "insideAreaConstraintNumeric");
     }
@@ -111,7 +111,7 @@ public final class IsInsideAreaByCodeIoxPluginTest {
 
         LogCollector logger = vh.runValidation(new String[]{ILI_FILE}, TOPIC, objects.stream().map(Supplier::get).toArray(IomObject[]::new));
         AssertionHelper.assertEventMessagesAreEqual(logger.getErrs(),
-                "IsInsideAreaByCode found an invalid overlap between code 'code_blue_20, code_magenta_20' and 'code_30'. The offending geometry has it's centroid at point: POINT (30 65)",
+                "IsInsideAreaByCode found an invalid overlap or topological error (missing support point) between code 'code_blue_20, code_magenta_20' and 'code_30'. The offending geometry is near: POINT (30 65)",
                 "Set Constraint TestSuite.FunctionTestTopic.TestClass.insideAreaConstraint is not true.");
     }
 
@@ -164,7 +164,7 @@ public final class IsInsideAreaByCodeIoxPluginTest {
 
         LogCollector logger = vh.runValidation(new String[]{ILI_FILE}, TOPIC, objects.stream().map(Supplier::get).toArray(IomObject[]::new));
         AssertionHelper.assertEventMessagesAreEqual(logger.getErrs(),
-                "IsInsideAreaByCode found an invalid overlap between code 'code_10' and 'code_30'. The offending geometry has it's centroid at point: POINT (17.5 30)",
+                "IsInsideAreaByCode found an invalid overlap or topological error (missing support point) between code 'code_10' and 'code_30'. The offending geometry is near: POINT (17.5 30)",
                 "Set Constraint TestSuite.FunctionTestTopic.TestClass.insideAreaConstraint is not true.");
     }
 
@@ -213,10 +213,10 @@ public final class IsInsideAreaByCodeIoxPluginTest {
 
         LogCollector logger = vh.runValidation(new String[]{ILI_FILE}, TOPIC, objects.stream().map(Supplier::get).toArray(IomObject[]::new));
         AssertionHelper.assertEventMessagesAreEqual(logger.getErrs(),
-                "IsInsideAreaByCode found an invalid overlap between code 'code_10' and 'code_blue_20, code_magenta_20'. The offending geometry has it's centroid at point: POINT (85 50)",
-                "IsInsideAreaByCode found an invalid overlap between code 'code_blue_20, code_magenta_20' and 'code_30'. The offending geometry has it's centroid at point: POINT (70 50)",
-                "IsInsideAreaByCode found an invalid overlap between code 'code_30' and 'code_40'. The offending geometry has it's centroid at point: POINT (55 50)",
-                "IsInsideAreaByCode found an invalid overlap between code 'code_40' and 'code_noNumber15, code_, code_without_number'. The offending geometry has it's centroid at point: POINT (45 50)",
+                "IsInsideAreaByCode found an invalid overlap or topological error (missing support point) between code 'code_10' and 'code_blue_20, code_magenta_20'. The offending geometry is near: POINT (85 50)",
+                "IsInsideAreaByCode found an invalid overlap or topological error (missing support point) between code 'code_blue_20, code_magenta_20' and 'code_30'. The offending geometry is near: POINT (70 50)",
+                "IsInsideAreaByCode found an invalid overlap or topological error (missing support point) between code 'code_30' and 'code_40'. The offending geometry is near: POINT (55 50)",
+                "IsInsideAreaByCode found an invalid overlap or topological error (missing support point) between code 'code_40' and 'code_noNumber15, code_, code_without_number'. The offending geometry is near: POINT (45 50)",
                 "Set Constraint TestSuite.FunctionTestTopic.TestClass.insideAreaConstraint is not true.");
     }
 
@@ -296,7 +296,7 @@ public final class IsInsideAreaByCodeIoxPluginTest {
 
         LogCollector logger = vh.runValidation(new String[]{ILI_FILE}, TOPIC, objects.stream().map(Supplier::get).toArray(IomObject[]::new));
         AssertionHelper.assertEventMessagesAreEqual(logger.getErrs(),
-                "IsInsideAreaByCode found an invalid overlap between code 'code_10' and 'code_without_number'. The offending geometry has it's centroid at point: POINT (55 30)",
+                "IsInsideAreaByCode found an invalid overlap or topological error (missing support point) between code 'code_10' and 'code_without_number'. The offending geometry is near: POINT (55 30)",
                 "Set Constraint TestSuite.FunctionTestTopic.TestClass.insideAreaConstraint is not true.");
     }
 
@@ -356,7 +356,38 @@ public final class IsInsideAreaByCodeIoxPluginTest {
         // Because the arcs are stroked differently, thin overlaps occur
         Assert.equals(2, logger.getErrs().size());
 
-        AssertionHelper.assertLogEventsMessages(logger.getErrs(), "^IsInsideAreaByCode found an invalid overlap between code 'code_10' and 'code_30'. The offending geometry has it's centroid at point: POINT \\(43.2\\d+ 42.1\\d+\\)$", 1);
+        AssertionHelper.assertLogEventsMessages(logger.getErrs(), "^IsInsideAreaByCode found an invalid overlap or topological error \\(missing support point\\) between code 'code_10' and 'code_30'. The offending geometry is near: POINT \\(15.8\\d+ 59.5\\d+\\)$", 1);
         AssertionHelper.assertLogEventsMessages(logger.getErrs(), "^Set Constraint TestSuite.FunctionTestTopic.TestClass.insideAreaConstraint is not true.$", 1);
+    }
+
+    @Test
+    public void almostCollinearSegment() throws Ili2cFailure {
+        List<Supplier<IomObject>> objects = Arrays.asList(() -> {
+            IomObject object = new Iom_jObject(TEST_CLASS, "o1");
+            object.setattrvalue("code", "code_10");
+            object.addattrobj("surface", IomObjectHelper.createPolygonFromBoundaries(
+                    IomObjectHelper.createBoundary(
+                            IomObjectHelper.createCoord("2610068.000", "1252503.850"),
+                            IomObjectHelper.createCoord("2610067.670", "1252503.910"),
+                            IomObjectHelper.createCoord("2610067.650", "1252503.970"),
+                            IomObjectHelper.createCoord("2610068.000", "1252503.850"))));
+            return object;
+        }, () -> {
+            IomObject object = new Iom_jObject(TEST_CLASS, "o2");
+            object.setattrvalue("code", "code_30");
+            object.addattrobj("surface", IomObjectHelper.createPolygonFromBoundaries(
+                    IomObjectHelper.createBoundary(
+                            IomObjectHelper.createCoord("2610070.000", "1252503.500"),
+                            IomObjectHelper.createCoord("2610067.610", "1252503.370"),
+                            IomObjectHelper.createCoord("2610067.670", "1252503.910"),
+                            IomObjectHelper.createCoord("2610067.580", "1252504.180"),
+                            IomObjectHelper.createCoord("2610070.000", "1252503.500"))));
+            return object;
+        });
+
+        LogCollector logger = vh.runValidation(new String[]{ILI_FILE}, TOPIC, objects.stream().map(Supplier::get).toArray(IomObject[]::new));
+        AssertionHelper.assertEventMessagesAreEqual(logger.getErrs(),
+                "IsInsideAreaByCode found a topological error (probably missing support point) between code 'code_10' and 'code_30'. The offending geometry is inside the envelope: POLYGON ((2610067.640033932 1252503.9000373208, 2610067.640033932 1252503.9794528584, 2610067.67 1252503.9794528584, 2610067.67 1252503.9000373208, 2610067.640033932 1252503.9000373208))",
+                "Set Constraint TestSuite.FunctionTestTopic.TestClass.insideAreaConstraint is not true.");
     }
 }
