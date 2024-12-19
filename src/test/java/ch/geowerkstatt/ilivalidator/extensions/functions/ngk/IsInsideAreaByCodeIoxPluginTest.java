@@ -4,7 +4,6 @@ import ch.interlis.ili2c.Ili2cFailure;
 import ch.interlis.iom.IomObject;
 import ch.interlis.iom_j.Iom_jObject;
 import ch.interlis.iox.IoxException;
-import com.vividsolutions.jts.util.Assert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +16,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public final class IsInsideAreaByCodeIoxPluginTest {
     private static final String ILI_FILE = "IsInsideAreaByCode/SetConstraints.ili";
@@ -44,7 +45,7 @@ public final class IsInsideAreaByCodeIoxPluginTest {
     @Test
     public void setConstraintOk() throws Ili2cFailure, IoxException {
         LogCollector logger = vh.runValidation(new String[]{TEST_DATA_OK}, new String[]{ILI_FILE});
-        Assert.equals(0, logger.getErrs().size());
+        assertEquals(0, logger.getErrs().size());
         AssertionHelper.assertNoConstraintError(logger, "insideAreaConstraintEnum");
         AssertionHelper.assertNoConstraintError(logger, "insideAreaConstraintNumeric");
     }
@@ -52,7 +53,7 @@ public final class IsInsideAreaByCodeIoxPluginTest {
     @Test
     public void setConstraintFail() throws Ili2cFailure, IoxException {
         LogCollector logger = vh.runValidation(new String[]{TEST_DATA_FAIL}, new String[]{ILI_FILE});
-        Assert.equals(9, logger.getErrs().size());
+        assertEquals(9, logger.getErrs().size());
 
         AssertionHelper.assertLogEventsMessages(logger.getErrs(), "^IsInsideAreaByCode found an invalid overlap or topological error \\(missing support point\\) between code 'code_2' and 'code_3'", 1);
         AssertionHelper.assertLogEventsMessages(logger.getErrs(), "^IsInsideAreaByCode found an invalid overlap or topological error \\(missing support point\\) between code 'code_3' and 'code_4'", 1);
@@ -82,7 +83,7 @@ public final class IsInsideAreaByCodeIoxPluginTest {
         });
 
         LogCollector logger = vh.runValidation(new String[]{ILI_FILE}, TOPIC, objects.stream().map(Supplier::get).toArray(IomObject[]::new));
-        Assert.equals(0, logger.getErrs().size());
+        assertEquals(0, logger.getErrs().size());
     }
 
     @Test
@@ -140,7 +141,7 @@ public final class IsInsideAreaByCodeIoxPluginTest {
         });
 
         LogCollector logger = vh.runValidation(new String[]{ILI_FILE}, TOPIC, objects.stream().map(Supplier::get).toArray(IomObject[]::new));
-        Assert.equals(0, logger.getErrs().size());
+        assertEquals(0, logger.getErrs().size());
     }
 
     @Test
@@ -188,7 +189,7 @@ public final class IsInsideAreaByCodeIoxPluginTest {
                 .collect(Collectors.toList());
 
         LogCollector logger = vh.runValidation(new String[]{ILI_FILE}, TOPIC, objects.stream().map(Supplier::get).toArray(IomObject[]::new));
-        Assert.equals(0, logger.getErrs().size());
+        assertEquals(0, logger.getErrs().size());
     }
 
     @Test
@@ -235,7 +236,7 @@ public final class IsInsideAreaByCodeIoxPluginTest {
         });
 
         LogCollector logger = vh.runValidation(new String[]{ILI_FILE}, TOPIC, objects.stream().map(Supplier::get).toArray(IomObject[]::new));
-        Assert.equals(0, logger.getErrs().size());
+        assertEquals(0, logger.getErrs().size());
     }
 
     @Test
@@ -259,7 +260,7 @@ public final class IsInsideAreaByCodeIoxPluginTest {
         });
 
         LogCollector logger = vh.runValidation(new String[]{ILI_FILE}, TOPIC, objects.stream().map(Supplier::get).toArray(IomObject[]::new));
-        Assert.equals(0, logger.getErrs().size());
+        assertEquals(0, logger.getErrs().size());
     }
 
     @Test
@@ -277,7 +278,7 @@ public final class IsInsideAreaByCodeIoxPluginTest {
         });
 
         LogCollector logger = vh.runValidation(new String[]{ILI_FILE}, TOPIC, objects.stream().map(Supplier::get).toArray(IomObject[]::new));
-        Assert.equals(0, logger.getErrs().size());
+        assertEquals(0, logger.getErrs().size());
     }
 
     @Test
@@ -325,7 +326,7 @@ public final class IsInsideAreaByCodeIoxPluginTest {
         });
 
         LogCollector logger = vh.runValidation(new String[]{ILI_FILE}, TOPIC, objects.stream().map(Supplier::get).toArray(IomObject[]::new));
-        Assert.equals(0, logger.getErrs().size());
+        assertEquals(0, logger.getErrs().size());
     }
 
     @Test
@@ -354,7 +355,7 @@ public final class IsInsideAreaByCodeIoxPluginTest {
 
         LogCollector logger = vh.runValidation(new String[]{ILI_FILE}, TOPIC, objects.stream().map(Supplier::get).toArray(IomObject[]::new));
         // Because the arcs are stroked differently, thin overlaps occur
-        Assert.equals(2, logger.getErrs().size());
+        assertEquals(2, logger.getErrs().size());
 
         AssertionHelper.assertLogEventsMessages(logger.getErrs(), "^IsInsideAreaByCode found an invalid overlap or topological error \\(missing support point\\) between code 'code_10' and 'code_30'. The offending geometry is near: POINT \\(15.8\\d+ 59.5\\d+\\)$", 1);
         AssertionHelper.assertLogEventsMessages(logger.getErrs(), "^Set Constraint TestSuite.FunctionTestTopic.TestClass.insideAreaConstraint is not true.$", 1);
