@@ -11,6 +11,7 @@ import ch.interlis.iox_j.validator.Validator;
 import ch.interlis.iox_j.validator.Value;
 
 public abstract class BaseInterlisFunction implements InterlisFunction {
+    private static Validator lastValidator = null;
 
     protected LogEventFactory logger;
     protected TransferDescription td;
@@ -26,6 +27,11 @@ public abstract class BaseInterlisFunction implements InterlisFunction {
         this.settings = settings;
         this.validator = (Validator) settings.getTransientObject(IOX_VALIDATOR);
         this.objectPool = objectPool;
+
+        if (lastValidator != this.validator) {
+            resetCaches();
+            lastValidator = this.validator;
+        }
     }
 
     @Override
@@ -43,4 +49,9 @@ public abstract class BaseInterlisFunction implements InterlisFunction {
     }
 
     protected abstract Value evaluateInternal(String validationKind, String usageScope, IomObject mainObj, Value[] actualArguments);
+
+    /**
+     * A change was detected that requires the caches to be reset.
+     */
+    protected void resetCaches() { }
 }
