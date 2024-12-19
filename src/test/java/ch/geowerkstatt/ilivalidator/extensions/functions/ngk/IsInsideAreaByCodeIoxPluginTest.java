@@ -391,4 +391,43 @@ public final class IsInsideAreaByCodeIoxPluginTest {
                 "IsInsideAreaByCode found a topological error (probably missing support point) between code 'code_10' and 'code_30'. The offending geometry is inside the envelope: POLYGON ((2610067.640033932 1252503.9000373208, 2610067.640033932 1252503.9794528584, 2610067.67 1252503.9794528584, 2610067.67 1252503.9000373208, 2610067.640033932 1252503.9000373208))",
                 "Set Constraint TestSuite.FunctionTestTopic.TestClass.insideAreaConstraint is not true.");
     }
+
+    @Test
+    public void clearCacheBetweenValidations() throws Ili2cFailure {
+        // The oids are in both validations the same to get incorrect cache hits if the cache is not cleared in between validations
+        final String oid1 = "o1";
+        final String oid2 = "o2";
+
+        List<Supplier<IomObject>> objectsError = Arrays.asList(() -> {
+            IomObject object = new Iom_jObject(TEST_CLASS, oid1);
+            object.setattrvalue("code", "code_10");
+            object.addattrobj("surface", IomObjectHelper.createRectangleGeometry("20", "20", "60", "60"));
+            return object;
+        }, () -> {
+            IomObject object = new Iom_jObject(TEST_CLASS, oid2);
+            object.setattrvalue("code", "code_40");
+            object.addattrobj("surface", IomObjectHelper.createRectangleGeometry("0", "0", "40", "40"));
+            return object;
+        });
+
+        LogCollector logger = vh.runValidation(new String[]{ILI_FILE}, TOPIC, objectsError.stream().map(Supplier::get).toArray(IomObject[]::new));
+        AssertionHelper.assertEventMessagesAreEqual(logger.getErrs(),
+                "IsInsideAreaByCode found an invalid overlap or topological error (missing support point) between code 'code_10' and 'code_40'. The offending geometry is near: POINT (40 50)",
+                "Set Constraint TestSuite.FunctionTestTopic.TestClass.insideAreaConstraint is not true.");
+
+        List<Supplier<IomObject>> objectsValid = Arrays.asList(() -> {
+            IomObject object = new Iom_jObject(TEST_CLASS, oid1);
+            object.setattrvalue("code", "code_10");
+            object.addattrobj("surface", IomObjectHelper.createRectangleGeometry("20", "20", "40", "40"));
+            return object;
+        }, () -> {
+            IomObject object = new Iom_jObject(TEST_CLASS, oid2);
+            object.setattrvalue("code", "code_40");
+            object.addattrobj("surface", IomObjectHelper.createRectangleGeometry("0", "0", "60", "60"));
+            return object;
+        });
+
+        logger = vh.runValidation(new String[]{ILI_FILE}, TOPIC, objectsValid.stream().map(Supplier::get).toArray(IomObject[]::new));
+        assertEquals(0, logger.getErrs().size());
+    }
 }
