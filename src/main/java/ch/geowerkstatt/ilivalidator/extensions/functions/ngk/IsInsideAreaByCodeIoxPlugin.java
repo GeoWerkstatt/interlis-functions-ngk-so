@@ -31,6 +31,11 @@ public final class IsInsideAreaByCodeIoxPlugin extends BaseInterlisFunction {
     }
 
     @Override
+    protected void resetCaches() {
+        OBJECTS_CACHE.clear();
+    }
+
+    @Override
     protected Value evaluateInternal(String validationKind, String usageScope, IomObject contextObject, Value[] arguments) {
         Value argObjects = arguments[0];
         Value argGeometryPath = arguments[1];
